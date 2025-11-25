@@ -47,11 +47,18 @@ The dashboard will be available at `http://localhost:5000`
 ## Usage
 
 ### 1. Generate Sample Logs (for testing)
+
+**JSON Format:**
 ```bash
 python sample_log_generator.py
 ```
 
-This creates `sample_logs.json` with realistic activity data including:
+**CSV Format:**
+```bash
+python sample_log_generator_csv.py
+```
+
+This creates sample logs with realistic activity data including:
 - Normal user activity during office hours
 - Out-of-hours access anomalies
 - Honeyfile access events
@@ -59,26 +66,57 @@ This creates `sample_logs.json` with realistic activity data including:
 
 ### 2. Upload Logs to Dashboard
 1. Open the dashboard at `http://localhost:5000`
-2. Click "Choose File" and select your log file (e.g., `sample_logs.json`)
+2. Click "Choose File" and select your log file
 3. Click "Upload Logs"
 4. The dashboard will automatically process and display the analysis
 
+**Supported formats:** `.json`, `.csv`, `.log`, `.txt`
+
 ### 3. Using Your Own Logs
 
-Your log file should be in JSON Lines format (one JSON object per line):
+The dashboard supports **multiple log formats**:
+
+#### Option A: JSON Lines Format (one JSON object per line)
 
 ```json
 {"timestamp": "2025-11-25T14:30:00", "user": "john.doe", "action": "read", "file_path": "/home/user/document.pdf", "ip_address": "192.168.1.100", "is_honeyfil": false}
 {"timestamp": "2025-11-25T22:15:00", "user": "jane.smith", "action": "read", "file_path": "/home/admin/honeyfil_decoy.pdf", "ip_address": "192.168.1.105", "is_honeyfil": true}
 ```
 
+#### Option B: CSV Format
+
+```csv
+timestamp,user,action,file_path,ip_address,is_honeyfil
+2025-11-25T14:30:00,john.doe,read,/home/user/document.pdf,192.168.1.100,false
+2025-11-25T22:15:00,jane.smith,read,/home/admin/honeyfil_decoy.pdf,192.168.1.105,true
+```
+
+**Supported CSV column names** (case-insensitive):
+- `timestamp` / `Timestamp` / `time` / `Time`
+- `user` / `User` / `username` / `Username`
+- `action` / `Action` / `event` / `Event`
+- `file_path` / `file` / `File` / `path` / `Path`
+- `ip_address` / `ip` / `IP` / `source_ip`
+- `is_honeyfil` / `is_honeyfile` / `honeyfil` / `honeyfile`
+
+#### Option C: JSON Array Format
+
+```json
+[
+  {"timestamp": "2025-11-25T14:30:00", "user": "john.doe", "action": "read", "file_path": "/home/user/document.pdf"},
+  {"timestamp": "2025-11-25T22:15:00", "user": "jane.smith", "action": "read", "file_path": "/home/admin/honeyfil_decoy.pdf"}
+]
+```
+
 **Required fields:**
-- `timestamp` - ISO format datetime
+- `timestamp` - ISO format datetime (YYYY-MM-DDTHH:MM:SS)
 - `user` - Username
-- `action` - Action performed (read, write, execute, etc.)
+
+**Optional fields:**
+- `action` - Action performed (read, write, execute, delete, copy, etc.)
 - `file_path` - Path to accessed file
-- `ip_address` - User's IP address (optional)
-- `is_honeyfil` - Boolean indicating if file is a honeyfil (optional, auto-detected)
+- `ip_address` - User's IP address
+- `is_honeyfil` - Boolean/string indicating if file is a honeyfil (auto-detected if not provided)
 
 ## Dashboard Panels
 

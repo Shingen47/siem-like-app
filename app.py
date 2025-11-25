@@ -1,6 +1,8 @@
 from flask import Flask, render_template, jsonify, request
 from datetime import datetime, timedelta
 import json
+import csv
+import io
 import os
 from collections import defaultdict
 
@@ -80,46 +82,114 @@ def index():
     """Serve the main dashboard"""
     return render_template('dashboard.html')
 
-@app.route('/api/logs', methods=['POST'])
-def upload_logs():
-    """Upload and process log file"""
-    global logs_data, honeyfil_alerts
+def parse_csv_logs(content):
+    """Parse CSV format logs"""
+    logs = []
+    csv_file = io.StringIO(content)
+    reader = csv.DictReader(csv_file)
 
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'}), 400
+    for row in reader:
+        # Map CSV columns to expected format
+        # Support common column names
+        log_entry = {
+            'timestamp': row.get('timestamp') or row.get('Timestamp') or row.get('time') or row.get('Time'),
+            'user': row.get('user') or row.get('User') or row.get('username') or row.get('Username'),
+            'action': row.get('action') or row.get('Action') or row.get('event') or row.get('Event'),
+            'file_path': row.get('file_path') or row.get('file') or row.get('File') or row.get('path') or row.get('Path'),
+            'ip_address': row.get('ip_address') or row.get('ip') or row.get('IP') or row.get('source_ip'),
+        }
 
-    file = request.files['file']
-    content = file.read().decode('utf-8')
+        # Handle is_honeyfil boolean field
+        is_honeyfil_val = row.get('is_honeyfil') or row.get('is_honeyfile') or row.get('honeyfil') or row.get('honeyfile')
+        if is_honeyfil_val:
+            if isinstance(is_honeyfil_val, str):
+                log_entry['is_honeyfil'] = is_honeyfil_val.lower() in ['true', '1', 'yes']
+            else:
+                log_entry['is_honeyfil'] = bool(is_honeyfil_val)
+        else:
+            log_entry['is_honeyfil'] = False
 
-    # Parse logs (assuming JSON lines format)
-    logs_data = []
-    honeyfil_alerts = []
+        # Only add if we have minimum required fields
+        if log_entry['timestamp'] and log_entry['user']:
+            logs.append(log_entry)
 
+    return logs
+
+def parse_json_logs(content):
+    """Parse JSON or JSON lines format logs"""
+    logs = []
+
+    # Try JSON lines format first (one JSON object per line)
     for line in content.strip().split('\n'):
         if not line:
             continue
         try:
             log_entry = json.loads(line)
-            logs_data.append(log_entry)
+            logs.append(log_entry)
+        except json.JSONDecodeError:
+            continue
 
-            # Check for honeyfil access
-            if detect_honeyfil(log_entry):
-                alert = {
-                    'timestamp': log_entry.get('timestamp'),
-                    'user': log_entry.get('user'),
-                    'file_path': log_entry.get('file_path'),
-                    'action': log_entry.get('action'),
-                    'ip_address': log_entry.get('ip_address'),
-                    'severity': 'CRITICAL'
-                }
-                honeyfil_alerts.append(alert)
+    # If no logs parsed, try as single JSON array
+    if not logs:
+        try:
+            logs = json.loads(content)
+            if not isinstance(logs, list):
+                logs = [logs]
+        except json.JSONDecodeError:
+            pass
 
-            # Analyze user behavior
+    return logs
+
+@app.route('/api/logs', methods=['POST'])
+def upload_logs():
+    """Upload and process log file (supports JSON, JSON Lines, and CSV)"""
+    global logs_data, honeyfil_alerts, user_profiles
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    filename = file.filename.lower()
+    content = file.read().decode('utf-8')
+
+    # Reset data
+    logs_data = []
+    honeyfil_alerts = []
+    user_profiles.clear()
+
+    # Detect and parse file format
+    if filename.endswith('.csv'):
+        parsed_logs = parse_csv_logs(content)
+    else:
+        # Try JSON format (also handles .json, .log, .txt)
+        parsed_logs = parse_json_logs(content)
+
+    # Process each log entry
+    for log_entry in parsed_logs:
+        if not log_entry:
+            continue
+
+        logs_data.append(log_entry)
+
+        # Check for honeyfil access
+        if detect_honeyfil(log_entry):
+            alert = {
+                'timestamp': log_entry.get('timestamp'),
+                'user': log_entry.get('user'),
+                'file_path': log_entry.get('file_path'),
+                'action': log_entry.get('action'),
+                'ip_address': log_entry.get('ip_address'),
+                'severity': 'CRITICAL'
+            }
+            honeyfil_alerts.append(alert)
+
+        # Analyze user behavior
+        try:
             anomalies = analyze_user_behavior(log_entry)
             if anomalies:
                 log_entry['anomalies'] = anomalies
-
-        except json.JSONDecodeError:
+        except Exception as e:
+            # Skip entries with invalid data
             continue
 
     return jsonify({
