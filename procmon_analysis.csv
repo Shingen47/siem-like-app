@@ -1,0 +1,10 @@
+timestamp,user,action,file_path,ip_address,is_honeyfil
+2025-11-25T09:08:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\Confidential-Report.docx,127.0.0.1,true
+2025-11-25T09:08:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\Confidential-Report.docx,127.0.0.1,true
+2025-11-25T09:09:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\Confidential-Report.docx,127.0.0.1,true
+2025-11-25T09:09:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\Confidential-Report.docx,127.0.0.1,true
+2025-11-25T09:11:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\Confidential-Report.txt,127.0.0.1,true
+2025-11-25T09:11:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\Confidential-Report.txt,127.0.0.1,true
+2025-11-25T09:12:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\Confidential-Report.txt,127.0.0.1,true
+2025-11-25T09:15:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\credentials.txt,127.0.0.1,true
+2025-11-25T09:15:00,Explorer.EXE,read,C:\Users\Public\Desktop\SensitiveDocs_copy\SensitiveDocs\credentials.txt,127.0.0.1,true
