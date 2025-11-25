@@ -6,6 +6,7 @@
     <title>SIEM Dashboard - Honeyfile & Behavior Analysis</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -144,9 +145,37 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Provenance Graph -->
+            <div class="panel full-width">
+                <div class="panel-header">
+                    <h2>🔗 Provenance Graph</h2>
+                    <p class="panel-subtitle">Visualizes relationships between processes and files</p>
+                </div>
+                <div class="panel-content">
+                    <div id="provenanceGraph" style="min-height: 500px;">
+                        <p class="no-data">Upload logs to view provenance graph</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process Tree -->
+            <div class="panel full-width">
+                <div class="panel-header">
+                    <h2>🌳 Process Tree</h2>
+                    <p class="panel-subtitle">Shows process hierarchy and activity</p>
+                </div>
+                <div class="panel-content">
+                    <div id="processTree" style="min-height: 400px;">
+                        <p class="no-data">Upload logs to view process tree</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/provenance.js"></script>
+    <script src="/static/js/process-tree.js"></script>
 </body>
 </html>
