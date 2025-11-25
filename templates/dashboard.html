@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Dashboard - Honeyfile & Behavior Analysis</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>SIEM Dashboard</h1>
+            <p class="subtitle">Honeyfile Detection & User Behavior Analysis</p>
+            <div class="upload-section">
+                <input type="file" id="logFile" accept=".json,.log,.txt">
+                <button onclick="uploadLogs()" class="btn-primary">Upload Logs</button>
+                <span id="uploadStatus"></span>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon critical">⚠</div>
+                <div class="stat-content">
+                    <h3 id="honeyfilCount">0</h3>
+                    <p>Honeyfile Alerts</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning">⚡</div>
+                <div class="stat-content">
+                    <h3 id="anomalyCount">0</h3>
+                    <p>Behavior Anomalies</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon info">👥</div>
+                <div class="stat-content">
+                    <h3 id="userCount">0</h3>
+                    <p>Monitored Users</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">📊</div>
+                <div class="stat-content">
+                    <h3 id="eventCount">0</h3>
+                    <p>Total Events</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Honeyfile Alerts Panel -->
+            <div class="panel critical-panel">
+                <div class="panel-header">
+                    <h2>🍯 Honeyfile Alerts (CRITICAL)</h2>
+                    <span class="badge critical" id="honeyfilBadge">0</span>
+                </div>
+                <div class="panel-content">
+                    <div id="honeyfilAlerts" class="alerts-list">
+                        <p class="no-data">No honeyfile alerts detected</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Behavior Anomalies Panel -->
+            <div class="panel warning-panel">
+                <div class="panel-header">
+                    <h2>🔍 User Behavior Anomalies</h2>
+                    <span class="badge warning" id="behaviorBadge">0</span>
+                </div>
+                <div class="panel-content">
+                    <div id="behaviorAnomalies" class="alerts-list">
+                        <p class="no-data">No behavior anomalies detected</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Activity Timeline -->
+            <div class="panel info-panel full-width">
+                <div class="panel-header">
+                    <h2>📈 Event Timeline</h2>
+                    <div class="panel-controls">
+                        <select id="userFilter" onchange="updateTimeline()">
+                            <option value="">All Users</option>
+                        </select>
+                        <button onclick="refreshDashboard()" class="btn-refresh">🔄 Refresh</button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Access Hours Heatmap -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>⏰ Access Hours Pattern</h2>
+                </div>
+                <div class="panel-content">
+                    <canvas id="hoursHeatmap"></canvas>
+                </div>
+            </div>
+
+            <!-- User List with Risk Scores -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>👤 Monitored Users</h2>
+                </div>
+                <div class="panel-content">
+                    <div id="usersList" class="users-list">
+                        <p class="no-data">No users data available</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Log -->
+            <div class="panel full-width">
+                <div class="panel-header">
+                    <h2>📋 Recent Activity Log</h2>
+                </div>
+                <div class="panel-content">
+                    <div id="activityLog" class="activity-log">
+                        <table id="logTable">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>File</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logTableBody">
+                                <tr>
+                                    <td colspan="5" class="no-data">No activity data available</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
