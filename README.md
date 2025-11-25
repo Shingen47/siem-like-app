@@ -72,7 +72,28 @@ This creates sample logs with realistic activity data including:
 
 **Supported formats:** `.json`, `.csv`, `.log`, `.txt`
 
-### 3. Using Your Own Logs
+### 3. Converting Process Monitor Logs
+
+If you have **Process Monitor (ProcMon)** TSV logs from Windows:
+
+```bash
+python convert_full_procmon.py procmon_raw.tsv procmon_enhanced.csv
+```
+
+**What it does:**
+- ✅ Parses full ProcMon TSV format with all operation details
+- ✅ Extracts process information (name, PID, operations, results)
+- ✅ Automatically identifies honeyfile access patterns
+- ✅ Creates enhanced CSV with complete provenance data for graph visualization
+- ✅ Generates analysis summary showing honeyfil detections
+
+**Then upload** `procmon_enhanced.csv` to the dashboard to see:
+- 🔗 **Provenance Graph** - Visual process-file relationships with honeyfile highlights
+- 🌳 **Process Tree** - Hierarchical view of processes with risk scoring
+- 🚨 **Honeyfil Alerts** - All honeyfile access events flagged as CRITICAL
+- 📊 **Complete Analysis** - Timeline, behavior anomalies, and statistics
+
+### 4. Using Your Own Logs
 
 The dashboard supports **multiple log formats**:
 
