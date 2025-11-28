@@ -64,21 +64,35 @@
         <!-- Stats Overview -->
         <section class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon critical">⚠</div>
+                <div class="stat-icon critical">🍯</div>
                 <div class="stat-content">
                     <h3 id="honeyfilCount">0</h3>
                     <p>Honeyfile Alerts</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon warning">⚡</div>
+                <div class="stat-icon critical">🚨</div>
                 <div class="stat-content">
-                    <h3 id="anomalyCount">0</h3>
-                    <p>Behavior Anomalies</p>
+                    <h3 id="criticalCount">0</h3>
+                    <p>Critical Alerts</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon info">👥</div>
+                <div class="stat-icon warning">⚡</div>
+                <div class="stat-content">
+                    <h3 id="highCount">0</h3>
+                    <p>High Alerts</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon info">🔍</div>
+                <div class="stat-content">
+                    <h3 id="mediumCount">0</h3>
+                    <p>Medium Anomalies</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">👥</div>
                 <div class="stat-content">
                     <h3 id="userCount">0</h3>
                     <p>Monitored Users</p>
@@ -108,15 +122,41 @@
                 </div>
             </div>
 
-            <!-- Behavior Anomalies Panel -->
-            <div class="panel warning-panel">
+            <!-- Critical Behavior Alerts Panel -->
+            <div class="panel critical-panel">
                 <div class="panel-header">
-                    <h2>🔍 User Behavior Anomalies</h2>
-                    <span class="badge warning" id="behaviorBadge">0</span>
+                    <h2>🚨 Critical Behavior Alerts</h2>
+                    <span class="badge critical" id="criticalBadge">0</span>
                 </div>
                 <div class="panel-content">
-                    <div id="behaviorAnomalies" class="alerts-list">
-                        <p class="no-data">No behavior anomalies detected</p>
+                    <div id="criticalAlerts" class="alerts-list">
+                        <p class="no-data">No critical alerts detected</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- High Severity Alerts Panel -->
+            <div class="panel warning-panel">
+                <div class="panel-header">
+                    <h2>⚡ High Severity Alerts</h2>
+                    <span class="badge warning" id="highBadge">0</span>
+                </div>
+                <div class="panel-content">
+                    <div id="highAlerts" class="alerts-list">
+                        <p class="no-data">No high severity alerts detected</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medium/Other Anomalies Panel -->
+            <div class="panel info-panel">
+                <div class="panel-header">
+                    <h2>🔍 Medium Anomalies</h2>
+                    <span class="badge info" id="mediumBadge">0</span>
+                </div>
+                <div class="panel-content">
+                    <div id="mediumAlerts" class="alerts-list">
+                        <p class="no-data">No medium anomalies detected</p>
                     </div>
                 </div>
             </div>

@@ -245,6 +245,11 @@ body {
     color: var(--warning);
 }
 
+.badge.info {
+    background: var(--info-glow);
+    color: var(--info);
+}
+
 .panel-content {
     padding: 20px;
     max-height: 500px;

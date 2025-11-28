@@ -88,7 +88,9 @@ async function refreshDashboard() {
     await Promise.all([
         updateStats(),
         updateHoneyfilAlerts(),
-        updateBehaviorAnomalies(),
+        updateCriticalAlerts(),
+        updateHighAlerts(),
+        updateMediumAlerts(),
         updateUsers(),
         updateTimeline()
     ]);
@@ -97,16 +99,33 @@ async function refreshDashboard() {
 // Update dashboard statistics
 async function updateStats() {
     try {
-        const response = await fetch('/api/dashboard/stats');
-        const stats = await response.json();
+        const response = await fetch('/api/behavior-anomalies');
+        const anomalies = await response.json();
 
-        document.getElementById('honeyfilCount').textContent = stats.honeyfil_alerts;
-        document.getElementById('anomalyCount').textContent = stats.behavior_anomalies;
+        // Count by severity
+        const criticalCount = anomalies.filter(a => a.severity === 'CRITICAL').length;
+        const highCount = anomalies.filter(a => a.severity === 'HIGH').length;
+        const mediumCount = anomalies.filter(a => a.severity === 'MEDIUM').length;
+
+        // Get honeyfil count
+        const honeyfilResponse = await fetch('/api/honeyfil-alerts');
+        const honeyfilAlerts = await honeyfilResponse.json();
+
+        // Get general stats
+        const statsResponse = await fetch('/api/dashboard/stats');
+        const stats = await statsResponse.json();
+
+        document.getElementById('honeyfilCount').textContent = honeyfilAlerts.length;
+        document.getElementById('criticalCount').textContent = criticalCount;
+        document.getElementById('highCount').textContent = highCount;
+        document.getElementById('mediumCount').textContent = mediumCount;
         document.getElementById('userCount').textContent = stats.total_users;
         document.getElementById('eventCount').textContent = stats.total_events;
 
-        document.getElementById('honeyfilBadge').textContent = stats.honeyfil_alerts;
-        document.getElementById('behaviorBadge').textContent = stats.behavior_anomalies;
+        document.getElementById('honeyfilBadge').textContent = honeyfilAlerts.length;
+        document.getElementById('criticalBadge').textContent = criticalCount;
+        document.getElementById('highBadge').textContent = highCount;
+        document.getElementById('mediumBadge').textContent = mediumCount;
     } catch (error) {
         console.error('Error updating stats:', error);
     }
@@ -144,23 +163,24 @@ async function updateHoneyfilAlerts() {
     }
 }
 
-// Update behavior anomalies
-async function updateBehaviorAnomalies() {
+// Update critical behavior alerts
+async function updateCriticalAlerts() {
     try {
         const response = await fetch('/api/behavior-anomalies');
         const anomalies = await response.json();
+        const criticalAnomalies = anomalies.filter(a => a.severity === 'CRITICAL');
 
-        const container = document.getElementById('behaviorAnomalies');
+        const container = document.getElementById('criticalAlerts');
 
-        if (anomalies.length === 0) {
-            container.innerHTML = '<p class="no-data">No behavior anomalies detected</p>';
+        if (criticalAnomalies.length === 0) {
+            container.innerHTML = '<p class="no-data">No critical alerts detected</p>';
             return;
         }
 
-        container.innerHTML = anomalies.map(anomaly => `
-            <div class="alert-item ${anomaly.severity.toLowerCase()}">
+        container.innerHTML = criticalAnomalies.map(anomaly => `
+            <div class="alert-item critical">
                 <div class="alert-header">
-                    <span class="alert-severity ${anomaly.severity}">${anomaly.severity}</span>
+                    <span class="alert-severity CRITICAL">CRITICAL</span>
                     <span class="alert-time">${formatTimestamp(anomaly.timestamp)}</span>
                 </div>
                 <div class="alert-details">
@@ -172,7 +192,73 @@ async function updateBehaviorAnomalies() {
             </div>
         `).join('');
     } catch (error) {
-        console.error('Error updating behavior anomalies:', error);
+        console.error('Error updating critical alerts:', error);
+    }
+}
+
+// Update high severity alerts
+async function updateHighAlerts() {
+    try {
+        const response = await fetch('/api/behavior-anomalies');
+        const anomalies = await response.json();
+        const highAnomalies = anomalies.filter(a => a.severity === 'HIGH');
+
+        const container = document.getElementById('highAlerts');
+
+        if (highAnomalies.length === 0) {
+            container.innerHTML = '<p class="no-data">No high severity alerts detected</p>';
+            return;
+        }
+
+        container.innerHTML = highAnomalies.map(anomaly => `
+            <div class="alert-item high">
+                <div class="alert-header">
+                    <span class="alert-severity HIGH">HIGH</span>
+                    <span class="alert-time">${formatTimestamp(anomaly.timestamp)}</span>
+                </div>
+                <div class="alert-details">
+                    <div><strong>User:</strong> ${anomaly.user}</div>
+                    <div><strong>Type:</strong> ${anomaly.type.replace(/_/g, ' ')}</div>
+                    <div><strong>Description:</strong> ${anomaly.description}</div>
+                    <div><strong>File:</strong> ${anomaly.file_path}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error updating high alerts:', error);
+    }
+}
+
+// Update medium anomalies
+async function updateMediumAlerts() {
+    try {
+        const response = await fetch('/api/behavior-anomalies');
+        const anomalies = await response.json();
+        const mediumAnomalies = anomalies.filter(a => a.severity === 'MEDIUM');
+
+        const container = document.getElementById('mediumAlerts');
+
+        if (mediumAnomalies.length === 0) {
+            container.innerHTML = '<p class="no-data">No medium anomalies detected</p>';
+            return;
+        }
+
+        container.innerHTML = mediumAnomalies.map(anomaly => `
+            <div class="alert-item medium">
+                <div class="alert-header">
+                    <span class="alert-severity MEDIUM">MEDIUM</span>
+                    <span class="alert-time">${formatTimestamp(anomaly.timestamp)}</span>
+                </div>
+                <div class="alert-details">
+                    <div><strong>User:</strong> ${anomaly.user}</div>
+                    <div><strong>Type:</strong> ${anomaly.type.replace(/_/g, ' ')}</div>
+                    <div><strong>Description:</strong> ${anomaly.description}</div>
+                    <div><strong>File:</strong> ${anomaly.file_path}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error updating medium alerts:', error);
     }
 }
 
