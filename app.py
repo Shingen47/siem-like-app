@@ -396,40 +396,6 @@ def parse_json_logs(content):
 
     return logs
 
-@app.route('/api/baseline/upload', methods=['POST'])
-def upload_baseline():
-    """Upload baseline logs to learn normal behavior patterns"""
-    global baseline_learned, baseline_stats
-
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'}), 400
-
-    file = request.files['file']
-    filename = file.filename.lower()
-    content = file.read().decode('utf-8')
-
-    # Detect and parse file format
-    if filename.endswith('.csv'):
-        baseline_logs = parse_csv_logs(content)
-    else:
-        baseline_logs = parse_json_logs(content)
-
-    if not baseline_logs:
-        return jsonify({'error': 'No valid logs found in baseline file'}), 400
-
-    # Learn from baseline
-    learn_baseline(baseline_logs)
-
-    return jsonify({
-        'status': 'success',
-        'message': 'Baseline learned successfully',
-        'baseline_events': len(baseline_logs),
-        'normal_users': len(baseline_stats['normal_users']),
-        'normal_hours': sorted(list(baseline_stats['normal_hours'])),
-        'normal_ips': len(baseline_stats['normal_ips']),
-        'normal_processes': len(baseline_stats['normal_processes'])
-    })
-
 @app.route('/api/baseline/status')
 def baseline_status():
     """Get current baseline learning status"""
@@ -608,5 +574,34 @@ def get_process_tree():
     tree_data = build_process_tree()
     return jsonify(tree_data)
 
+def load_baseline_from_file():
+    """Load baseline from normal_user_baseline_50events.csv automatically"""
+    baseline_file = 'normal_user_baseline_50events.csv'
+
+    if not os.path.exists(baseline_file):
+        print(f"⚠ Warning: Baseline file '{baseline_file}' not found. Baseline learning skipped.")
+        return
+
+    try:
+        baseline_logs = []
+        with open(baseline_file, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # Convert is_honeyfil string to boolean
+                if 'is_honeyfil' in row:
+                    row['is_honeyfil'] = row['is_honeyfil'].lower() == 'true'
+                baseline_logs.append(row)
+
+        if baseline_logs:
+            learn_baseline(baseline_logs)
+            print(f"✓ Baseline automatically loaded from {baseline_file}")
+        else:
+            print(f"⚠ Warning: No baseline data found in {baseline_file}")
+
+    except Exception as e:
+        print(f"❌ Error loading baseline from {baseline_file}: {str(e)}")
+
 if __name__ == '__main__':
+    # Load baseline automatically on startup
+    load_baseline_from_file()
     app.run(debug=True, host='0.0.0.0', port=5000)

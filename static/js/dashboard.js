@@ -10,46 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(refreshDashboard, 30000);
 });
 
-// Upload baseline file
-async function uploadBaseline() {
-    const fileInput = document.getElementById('baselineFile');
-    const statusSpan = document.getElementById('baselineUploadStatus');
-
-    if (!fileInput.files || fileInput.files.length === 0) {
-        statusSpan.textContent = '❌ Please select a baseline file';
-        statusSpan.style.color = '#ef4444';
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-
-    statusSpan.textContent = '⏳ Learning baseline...';
-    statusSpan.style.color = '#f59e0b';
-
-    try {
-        const response = await fetch('/api/baseline/upload', {
-            method: 'POST',
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (data.status === 'success') {
-            statusSpan.textContent = `✅ Baseline learned from ${data.baseline_events} events`;
-            statusSpan.style.color = '#10b981';
-            updateBaselineStatus(data);
-        } else {
-            statusSpan.textContent = `❌ ${data.message || 'Upload failed'}`;
-            statusSpan.style.color = '#ef4444';
-        }
-    } catch (error) {
-        statusSpan.textContent = '❌ Error uploading baseline';
-        statusSpan.style.color = '#ef4444';
-        console.error('Baseline upload error:', error);
-    }
-}
-
 // Check baseline status on page load
 async function checkBaselineStatus() {
     try {

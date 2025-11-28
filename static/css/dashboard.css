@@ -508,47 +508,8 @@ body {
     margin-bottom: 20px;
 }
 
-.baseline-upload {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-#baselineFile {
-    padding: 10px;
-    background: var(--bg-dark);
-    border: 2px dashed var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    cursor: pointer;
-    flex: 1;
-}
-
-.btn-baseline {
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: transform 0.2s;
-}
-
-.btn-baseline:hover {
-    transform: translateY(-2px);
-}
-
-#baselineUploadStatus {
-    color: var(--success);
-    font-weight: 600;
-    display: block;
-    margin-top: 10px;
-}
-
 .baseline-status {
-    margin-top: 20px;
+    margin-top: 15px;
     padding: 15px;
     background: var(--bg-dark);
     border-radius: 8px;
