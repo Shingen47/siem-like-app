@@ -5,9 +5,83 @@ let hoursChart = null;
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
+    checkBaselineStatus();
     // Auto-refresh every 30 seconds
     setInterval(refreshDashboard, 30000);
 });
+
+// Upload baseline file
+async function uploadBaseline() {
+    const fileInput = document.getElementById('baselineFile');
+    const statusSpan = document.getElementById('baselineUploadStatus');
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        statusSpan.textContent = '❌ Please select a baseline file';
+        statusSpan.style.color = '#ef4444';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    statusSpan.textContent = '⏳ Learning baseline...';
+    statusSpan.style.color = '#f59e0b';
+
+    try {
+        const response = await fetch('/api/baseline/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            statusSpan.textContent = `✅ Baseline learned from ${data.baseline_events} events`;
+            statusSpan.style.color = '#10b981';
+            updateBaselineStatus(data);
+        } else {
+            statusSpan.textContent = `❌ ${data.message || 'Upload failed'}`;
+            statusSpan.style.color = '#ef4444';
+        }
+    } catch (error) {
+        statusSpan.textContent = '❌ Error uploading baseline';
+        statusSpan.style.color = '#ef4444';
+        console.error('Baseline upload error:', error);
+    }
+}
+
+// Check baseline status on page load
+async function checkBaselineStatus() {
+    try {
+        const response = await fetch('/api/baseline/status');
+        const data = await response.json();
+
+        if (data.baseline_learned) {
+            updateBaselineStatus(data.stats);
+        }
+    } catch (error) {
+        console.error('Error checking baseline status:', error);
+    }
+}
+
+// Update baseline status UI
+function updateBaselineStatus(data) {
+    const indicator = document.getElementById('baselineIndicator');
+    const statsDiv = document.getElementById('baselineStats');
+
+    // Update status indicator
+    indicator.innerHTML = `
+        <span class="status-dot learned"></span>
+        <span class="status-text">✅ Baseline learned successfully</span>
+    `;
+
+    // Show and populate statistics
+    statsDiv.classList.remove('hidden');
+    document.getElementById('baselineUsers').textContent = data.normal_users || 0;
+    document.getElementById('baselineHours').textContent = (data.normal_hours || []).join(', ');
+    document.getElementById('baselineIPs').textContent = data.normal_ips || 0;
+    document.getElementById('baselineProcesses').textContent = data.normal_processes || 0;
+}
 
 // Upload log file
 async function uploadLogs() {

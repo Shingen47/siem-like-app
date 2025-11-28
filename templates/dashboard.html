@@ -14,12 +14,57 @@
         <header class="header">
             <h1>SIEM Dashboard</h1>
             <p class="subtitle">Honeyfile Detection & User Behavior Analysis</p>
-            <div class="upload-section">
-                <input type="file" id="logFile" accept=".json,.log,.txt,.csv">
-                <button onclick="uploadLogs()" class="btn-primary">Upload Logs</button>
-                <span id="uploadStatus"></span>
-            </div>
         </header>
+
+        <!-- Baseline Learning Section -->
+        <section class="baseline-section">
+            <div class="baseline-card">
+                <h2>📚 Step 1: Upload Baseline (Normal Behavior)</h2>
+                <p class="baseline-description">Upload normal user logs to establish a baseline for anomaly detection</p>
+                <div class="baseline-upload">
+                    <input type="file" id="baselineFile" accept=".csv,.json,.log,.txt">
+                    <button onclick="uploadBaseline()" class="btn-baseline">Upload Baseline</button>
+                    <span id="baselineUploadStatus"></span>
+                </div>
+                <div id="baselineStatus" class="baseline-status">
+                    <div class="status-indicator" id="baselineIndicator">
+                        <span class="status-dot not-learned"></span>
+                        <span class="status-text">No baseline learned yet</span>
+                    </div>
+                </div>
+                <div id="baselineStats" class="baseline-stats hidden">
+                    <h3>Learned Baseline Statistics:</h3>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">Normal Users:</span>
+                            <span id="baselineUsers" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Normal Hours:</span>
+                            <span id="baselineHours" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Normal IPs:</span>
+                            <span id="baselineIPs" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Normal Processes:</span>
+                            <span id="baselineProcesses" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logs-card">
+                <h2>🔍 Step 2: Upload Logs to Analyze</h2>
+                <p class="logs-description">Upload logs to detect anomalies based on learned baseline</p>
+                <div class="upload-section">
+                    <input type="file" id="logFile" accept=".json,.log,.txt,.csv">
+                    <button onclick="uploadLogs()" class="btn-primary">Upload Logs</button>
+                    <span id="uploadStatus"></span>
+                </div>
+            </div>
+        </section>
 
         <!-- Stats Overview -->
         <section class="stats-grid">

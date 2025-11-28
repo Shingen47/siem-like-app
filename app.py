@@ -23,37 +23,165 @@ provenance_data = {
     'edges': []   # operations connecting them
 }
 
+# Baseline learning storage
+baseline_learned = False
+baseline_stats = {
+    'normal_hours': set(),  # Set of normal access hours
+    'normal_users': set(),  # Set of legitimate users
+    'normal_ips': set(),  # Set of legitimate IP addresses
+    'normal_processes': set(),  # Set of legitimate process names
+    'file_patterns': set(),  # Set of normal file path patterns
+    'avg_events_per_hour': 0,
+    'common_actions': defaultdict(int),
+    'user_file_associations': defaultdict(set)  # user -> set of files they normally access
+}
+
+def learn_baseline(baseline_logs):
+    """Learn normal behavior patterns from baseline logs"""
+    global baseline_learned, baseline_stats
+
+    hours_count = defaultdict(int)
+
+    for log_entry in baseline_logs:
+        try:
+            timestamp = datetime.fromisoformat(log_entry.get('timestamp'))
+            user = log_entry.get('user')
+            ip_address = log_entry.get('ip_address')
+            file_path = log_entry.get('file_path')
+            action = log_entry.get('action')
+            process_name = log_entry.get('process_name') or log_entry.get('user')
+
+            # Learn normal hours
+            hour = timestamp.hour
+            baseline_stats['normal_hours'].add(hour)
+            hours_count[hour] += 1
+
+            # Learn normal users
+            if user:
+                baseline_stats['normal_users'].add(user)
+                if file_path:
+                    baseline_stats['user_file_associations'][user].add(file_path)
+
+            # Learn normal IPs
+            if ip_address:
+                baseline_stats['normal_ips'].add(ip_address)
+
+            # Learn normal processes
+            if process_name:
+                baseline_stats['normal_processes'].add(process_name)
+
+            # Learn file patterns (extract folder patterns)
+            if file_path:
+                baseline_stats['file_patterns'].add(file_path)
+                # Also add parent directories as patterns
+                if '\\' in file_path:
+                    parts = file_path.split('\\')
+                    for i in range(len(parts)):
+                        baseline_stats['file_patterns'].add('\\'.join(parts[:i+1]))
+
+            # Learn common actions
+            if action:
+                baseline_stats['common_actions'][action] += 1
+
+        except Exception as e:
+            continue
+
+    # Calculate average events per hour
+    if hours_count:
+        baseline_stats['avg_events_per_hour'] = sum(hours_count.values()) / len(hours_count)
+
+    baseline_learned = True
+    print(f"✓ Baseline learned: {len(baseline_logs)} events")
+    print(f"  - Normal users: {len(baseline_stats['normal_users'])}")
+    print(f"  - Normal hours: {sorted(baseline_stats['normal_hours'])}")
+    print(f"  - Normal IPs: {len(baseline_stats['normal_ips'])}")
+    print(f"  - Normal processes: {len(baseline_stats['normal_processes'])}")
+
 def analyze_user_behavior(log_entry):
-    """Analyze user behavior for anomalies"""
+    """Analyze user behavior for anomalies using learned baseline"""
     anomalies = []
     user = log_entry.get('user')
     timestamp = datetime.fromisoformat(log_entry.get('timestamp'))
     file_path = log_entry.get('file_path')
     action = log_entry.get('action')
+    ip_address = log_entry.get('ip_address')
+    process_name = log_entry.get('process_name') or log_entry.get('user')
 
     # Get user profile
     profile = user_profiles[user]
 
-    # Check time-based anomaly (office hours: 8 AM - 6 PM)
-    hour = timestamp.hour
-    if hour < 8 or hour > 18:
-        anomalies.append({
-            'type': 'OUT_OF_HOURS_ACCESS',
-            'severity': 'HIGH',
-            'description': f'Access outside office hours ({hour}:00)'
-        })
+    if baseline_learned:
+        # Use baseline for anomaly detection
+        hour = timestamp.hour
 
-    # Check unusual file access
-    if profile['common_files'] and file_path not in profile['common_files']:
-        if len(profile['access_history']) > 10:  # Only after building profile
+        # Check time-based anomaly against learned baseline
+        if hour not in baseline_stats['normal_hours']:
             anomalies.append({
-                'type': 'UNUSUAL_FILE_ACCESS',
-                'severity': 'MEDIUM',
-                'description': f'Accessing unusual file: {file_path}'
+                'type': 'OUT_OF_HOURS_ACCESS',
+                'severity': 'CRITICAL',
+                'description': f'Access outside learned normal hours ({hour}:00). Normal hours: {sorted(baseline_stats["normal_hours"])}'
             })
 
+        # Check unknown user
+        if user not in baseline_stats['normal_users']:
+            anomalies.append({
+                'type': 'UNKNOWN_USER',
+                'severity': 'CRITICAL',
+                'description': f'Unknown user "{user}" not in baseline. Known users: {len(baseline_stats["normal_users"])}'
+            })
+
+        # Check suspicious IP
+        if ip_address and ip_address not in baseline_stats['normal_ips']:
+            anomalies.append({
+                'type': 'SUSPICIOUS_IP',
+                'severity': 'HIGH',
+                'description': f'IP {ip_address} not seen in baseline. Known IPs: {len(baseline_stats["normal_ips"])}'
+            })
+
+        # Check suspicious process
+        if process_name and process_name not in baseline_stats['normal_processes']:
+            anomalies.append({
+                'type': 'SUSPICIOUS_PROCESS',
+                'severity': 'HIGH',
+                'description': f'Process "{process_name}" not in baseline. Baseline processes: {", ".join(list(baseline_stats["normal_processes"])[:3])}...'
+            })
+
+        # Check file access pattern deviation for known users
+        if user in baseline_stats['user_file_associations']:
+            user_normal_files = baseline_stats['user_file_associations'][user]
+            if file_path and file_path not in user_normal_files:
+                # Check if the file path pattern is similar to baseline
+                file_in_normal_pattern = any(
+                    pattern in file_path for pattern in baseline_stats['file_patterns']
+                )
+                if not file_in_normal_pattern:
+                    anomalies.append({
+                        'type': 'UNUSUAL_FILE_ACCESS',
+                        'severity': 'MEDIUM',
+                        'description': f'User accessing unusual file: {file_path}'
+                    })
+
+    else:
+        # Fallback to hardcoded rules if no baseline
+        hour = timestamp.hour
+        if hour < 8 or hour > 18:
+            anomalies.append({
+                'type': 'OUT_OF_HOURS_ACCESS',
+                'severity': 'HIGH',
+                'description': f'Access outside office hours ({hour}:00)'
+            })
+
+        # Check unusual file access
+        if profile['common_files'] and file_path not in profile['common_files']:
+            if len(profile['access_history']) > 10:  # Only after building profile
+                anomalies.append({
+                    'type': 'UNUSUAL_FILE_ACCESS',
+                    'severity': 'MEDIUM',
+                    'description': f'Accessing unusual file: {file_path}'
+                })
+
     # Update user profile
-    profile['normal_access_hours'].add(hour)
+    profile['normal_access_hours'].add(timestamp.hour)
     profile['common_files'].add(file_path)
     profile['access_history'].append({
         'timestamp': log_entry.get('timestamp'),
@@ -267,6 +395,54 @@ def parse_json_logs(content):
             pass
 
     return logs
+
+@app.route('/api/baseline/upload', methods=['POST'])
+def upload_baseline():
+    """Upload baseline logs to learn normal behavior patterns"""
+    global baseline_learned, baseline_stats
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    filename = file.filename.lower()
+    content = file.read().decode('utf-8')
+
+    # Detect and parse file format
+    if filename.endswith('.csv'):
+        baseline_logs = parse_csv_logs(content)
+    else:
+        baseline_logs = parse_json_logs(content)
+
+    if not baseline_logs:
+        return jsonify({'error': 'No valid logs found in baseline file'}), 400
+
+    # Learn from baseline
+    learn_baseline(baseline_logs)
+
+    return jsonify({
+        'status': 'success',
+        'message': 'Baseline learned successfully',
+        'baseline_events': len(baseline_logs),
+        'normal_users': len(baseline_stats['normal_users']),
+        'normal_hours': sorted(list(baseline_stats['normal_hours'])),
+        'normal_ips': len(baseline_stats['normal_ips']),
+        'normal_processes': len(baseline_stats['normal_processes'])
+    })
+
+@app.route('/api/baseline/status')
+def baseline_status():
+    """Get current baseline learning status"""
+    return jsonify({
+        'baseline_learned': baseline_learned,
+        'stats': {
+            'normal_users': list(baseline_stats['normal_users']),
+            'normal_hours': sorted(list(baseline_stats['normal_hours'])),
+            'normal_ips': list(baseline_stats['normal_ips']),
+            'normal_processes': list(baseline_stats['normal_processes']),
+            'total_file_patterns': len(baseline_stats['file_patterns'])
+        } if baseline_learned else {}
+    })
 
 @app.route('/api/logs', methods=['POST'])
 def upload_logs():
