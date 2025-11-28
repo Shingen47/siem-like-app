@@ -212,10 +212,6 @@
                     <h2>🔗 Provenance Graph</h2>
                     <p class="panel-subtitle">Visualizes relationships between processes and files</p>
                 </div>
-                <div class="panel-explanation">
-                    <p><strong>What it shows:</strong> This graph displays the data flow and relationships between processes and files. Blue nodes represent processes (WINWORD.EXE, Explorer.EXE, etc.), while green nodes represent files. Arrows show operations like read, write, and open. This helps identify attack chains where a malicious process accesses multiple sensitive files.</p>
-                    <p><strong>How to use it:</strong> Look for unusual patterns like processes accessing files outside their normal scope, or suspicious processes (cmd.exe, powershell.exe) interacting with honeyfiles marked in red.</p>
-                </div>
                 <div class="panel-content">
                     <div id="provenanceGraph" style="min-height: 600px;">
                         <p class="no-data">Upload logs to view provenance graph</p>
@@ -228,10 +224,6 @@
                 <div class="panel-header">
                     <h2>🌳 Process Tree</h2>
                     <p class="panel-subtitle">Shows process hierarchy and activity</p>
-                </div>
-                <div class="panel-explanation">
-                    <p><strong>What it shows:</strong> This tree displays the hierarchical structure of running processes and their activities. Each process shows its name, PID (Process ID), total operations performed, and number of files accessed. High-risk processes are marked in red, indicating suspicious behavior such as honeyfile access or anomalous patterns.</p>
-                    <p><strong>How to use it:</strong> Focus on processes with high operation counts or those marked as "High Risk". Processes like Explorer.EXE accessing 50+ files or cmd.exe/powershell.exe with unusual file access patterns are potential indicators of malicious activity.</p>
                 </div>
                 <div class="panel-content">
                     <div id="processTree" style="min-height: 700px;">
