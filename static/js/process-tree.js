@@ -26,20 +26,23 @@ function renderProcessTree(data) {
 
     const container = document.getElementById('processTree');
     const width = container.clientWidth;
-    const height = 600;
+    const height = 800;
 
-    // Create SVG
+    // Create SVG with centered content
     const svg = d3.select('#processTree')
         .append('svg')
         .attr('width', width)
-        .attr('height', height);
+        .attr('height', height)
+        .style('display', 'block')
+        .style('margin', '0 auto');
 
     const g = svg.append('g')
-        .attr('transform', `translate(${width / 2}, 40)`);
+        .attr('transform', `translate(${width / 2}, 60)`);
 
-    // Create tree layout
+    // Create tree layout with more vertical space
     const treeLayout = d3.tree()
-        .size([width - 100, height - 100]);
+        .size([width - 200, height - 180])
+        .separation((a, b) => (a.parent === b.parent ? 1.5 : 2));
 
     // Convert data to hierarchy
     const root = d3.hierarchy(data);
@@ -65,46 +68,46 @@ function renderProcessTree(data) {
         .attr('class', 'node')
         .attr('transform', d => `translate(${d.x},${d.y})`);
 
-    // Add circles for nodes
+    // Add circles for nodes (larger for better visibility)
     nodes.append('circle')
-        .attr('r', d => d.depth === 0 ? 25 : 20)
+        .attr('r', d => d.depth === 0 ? 30 : 25)
         .attr('fill', d => {
             if (d.depth === 0) return '#667eea'; // Root node (System)
             if (d.data.risk === 'high') return '#ef4444'; // High risk (accessed honeyfils)
             return '#3b82f6'; // Normal
         })
         .attr('stroke', '#fff')
-        .attr('stroke-width', 2);
+        .attr('stroke-width', 3);
 
     // Add icons for nodes
     nodes.append('text')
         .attr('text-anchor', 'middle')
-        .attr('dy', 5)
-        .attr('font-size', d => d.depth === 0 ? 20 : 16)
+        .attr('dy', 7)
+        .attr('font-size', d => d.depth === 0 ? 24 : 20)
         .text(d => {
             if (d.depth === 0) return '🖥️';
             if (d.data.risk === 'high') return '⚠️';
             return '⚙️';
         });
 
-    // Add labels
+    // Add labels (larger font)
     nodes.append('text')
-        .attr('dy', d => d.depth === 0 ? 45 : 35)
+        .attr('dy', d => d.depth === 0 ? 50 : 42)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 11)
+        .attr('font-size', 13)
         .attr('fill', '#e4e7eb')
-        .attr('font-weight', d => d.depth === 0 ? 'bold' : 'normal')
+        .attr('font-weight', d => d.depth === 0 ? 'bold' : '600')
         .text(d => {
             const name = d.data.name;
             return name.length > 30 ? name.substring(0, 30) + '...' : name;
         });
 
-    // Add statistics below process names
+    // Add statistics below process names (larger font)
     nodes.filter(d => d.depth > 0)
         .append('text')
-        .attr('dy', 50)
+        .attr('dy', 58)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 9)
+        .attr('font-size', 11)
         .attr('fill', '#9ca3af')
         .text(d => `Ops: ${d.data.operations} | Files: ${d.data.files_accessed}`);
 

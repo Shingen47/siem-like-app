@@ -599,6 +599,25 @@ body {
     margin-top: 5px;
 }
 
+.panel-explanation {
+    padding: 20px;
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid var(--info);
+    margin: 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.panel-explanation p {
+    margin: 10px 0;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.panel-explanation strong {
+    color: var(--info);
+    font-weight: 600;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .dashboard-grid {
