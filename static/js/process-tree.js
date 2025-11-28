@@ -36,17 +36,26 @@ function renderProcessTree(data) {
         .style('display', 'block')
         .style('margin', '0 auto');
 
-    const g = svg.append('g')
-        .attr('transform', `translate(${width / 2}, 60)`);
+    // Create tree layout with symmetric positioning
+    const treeWidth = width - 300;
+    const treeHeight = height - 180;
 
-    // Create tree layout with more vertical space
+    const g = svg.append('g')
+        .attr('transform', `translate(${width / 2}, 80)`);
+
+    // Create tree layout centered around 0
     const treeLayout = d3.tree()
-        .size([width - 200, height - 180])
+        .size([treeWidth, treeHeight])
         .separation((a, b) => (a.parent === b.parent ? 1.5 : 2));
 
     // Convert data to hierarchy
     const root = d3.hierarchy(data);
     treeLayout(root);
+
+    // Center the tree by adjusting x coordinates
+    root.descendants().forEach(d => {
+        d.x = d.x - treeWidth / 2;
+    });
 
     // Create links (lines connecting nodes)
     const links = g.selectAll('.link')
